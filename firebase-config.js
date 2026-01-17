@@ -11,20 +11,38 @@ To enable Firebase:
 */
 
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) 
-  : require('./serviceAccountKey.json');
+let serviceAccount;
+let isConfigured = false;
+let db, auth;
 
 try {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-  console.log("✅ Firebase Admin initialized successfully");
-} catch (error) {
-  console.error("❌ Firebase Admin initialization failed:", error);
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    // Only try to require if the file exists to avoid crashing
+    const fs = require('fs');
+    if (fs.existsSync('./serviceAccountKey.json')) {
+        serviceAccount = require('./serviceAccountKey.json');
+    }
+  }
+} catch (e) {
+  console.log("⚠️ Error loading service account:", e.message);
 }
 
-const db = admin.firestore();
-const auth = admin.auth();
+if (serviceAccount) {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      console.log("✅ Firebase Admin initialized successfully");
+      db = admin.firestore();
+      auth = admin.auth();
+      isConfigured = true;
+    } catch (error) {
+      console.error("❌ Firebase Admin initialization failed:", error);
+    }
+} else {
+    console.log("⚠️ Firebase not configured (missing serviceAccountKey.json). Skipping.");
+}
 
-module.exports = { admin, db, auth, isConfigured: true };
+module.exports = { admin, db, auth, isConfigured };
