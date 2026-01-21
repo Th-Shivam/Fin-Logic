@@ -125,6 +125,8 @@ function parseAnalysisText(text) {
 }
 
 function renderResults(risks, source) {
+    resultsSection.classList.remove('hidden');
+    analysisContainer.classList.remove('hidden');
     analysisContent.innerHTML = '';
     
     if (!risks || risks.length === 0) {
@@ -176,8 +178,13 @@ function renderResults(risks, source) {
 
                 ${parsed['safer rewrite suggestion'] ? `
                 <div class="rewrite-box">
-                    <h4>Safer Rewrite</h4>
-                    <p>${parsed['safer rewrite suggestion']}</p>
+                    <div class="rewrite-header">
+                        <h4>Safer Rewrite</h4>
+                        <button class="copy-btn" data-copy="${parsed['safer rewrite suggestion']}">
+                            Copy
+                        </button>
+                    </div>
+                    <p class="rewrite-text">${parsed['safer rewrite suggestion']}</p>
                 </div>
                 ` : ''}
 
@@ -197,6 +204,26 @@ function renderResults(risks, source) {
     disclaimer.innerText = "This tool is educational only — not legal advice.";
     analysisContent.appendChild(disclaimer);
 }
+
+// Clipboard Copy Logic
+document.addEventListener('click', async (e) => {
+    if (!e.target.classList.contains('copy-btn')) return;
+
+    const text = e.target.dataset.copy;
+    if (!text) return;
+
+    try {
+        await navigator.clipboard.writeText(text);
+        const original = e.target.textContent;
+        e.target.textContent = 'Copied!';
+        setTimeout(() => {
+            e.target.textContent = original;
+        }, 1500);
+    } catch (err) {
+        console.error('Copy failed', err);
+    }
+});
+
 
 // Firebase Integration
 const loginBtn = document.getElementById('loginBtn');
