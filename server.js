@@ -36,7 +36,25 @@ const storage = multer.diskStorage({
   }
 })
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
+
+// Middleware to handle file size errors
+const uploadMiddleware = (req, res, next) => {
+  upload.single('document')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(500).json({ error: 'Upload error: ' + err.message });
+    }
+    next();
+  });
+};
 
 // Routes
 app.get('/', (req, res) => {
@@ -44,7 +62,7 @@ app.get('/', (req, res) => {
 });
 
 // Analysis Route
-app.post('/analyze', upload.single('document'), async (req, res) => {
+app.post('/analyze', uploadMiddleware, async (req, res) => {
   let text = '';
 
   try {
@@ -86,7 +104,7 @@ app.post('/analyze', upload.single('document'), async (req, res) => {
 });
 
 // New Detailed Analysis Route
-app.post('/api/analyze-document', upload.single('document'), async (req, res) => {
+app.post('/api/analyze-document', uploadMiddleware, async (req, res) => {
     let text = '';
     
     try {

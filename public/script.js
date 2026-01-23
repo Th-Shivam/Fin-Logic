@@ -78,11 +78,11 @@ analyzeBtn.addEventListener('click', async () => {
             });
         }
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || `Server error: ${response.status}`);
+        }
 
         if (data.success) {
             renderResults(data.results, data.source);
