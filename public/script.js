@@ -392,3 +392,23 @@ async function viewReport(reportId) {
         activeMode = 'paste';
     }
 }
+
+var mybutton = document.getElementById("scrollToTop")
+
+window.onscroll=function() {scrollFunction()}
+
+function scrollFunction(){
+    if(document.body.scrollTop>20||document.documentElement.scrollTop>20){mybutton.style.display="block"}
+    else{mybutton.style.display="none"}
+}
+
+mybutton.onclick=function(){
+    scrollToTop();
+}
+
+function scrollToTop(){
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    })
+}
